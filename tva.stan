@@ -1,4 +1,19 @@
 
+array[] vector to_vector_array(matrix m) {
+  array[rows(m)] vector[cols(m)] a;
+  for(i in 1:rows(m)) {
+    a[i,] = to_vector(m[i,]);
+  }
+  return a;
+}
+
+matrix cov(matrix X) {
+  matrix[rows(X),cols(X)] Y;
+  for(i in 1:cols(X)) Y[,i] = X[,i] - mean(X[,i]);
+  matrix[cols(X),cols(X)] r = crossprod(Y)/(rows(X)-1);
+  return r;
+}
+
 int num_matches(array[] int x) {
   return sum(x);
 }
@@ -73,6 +88,7 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
     return negative_infinity();
   } else if(t <= 0 && nR == 0) {
     return 0.0;
+
   } else if(K < nR) {
     return negative_infinity();
   } else if(0 == nR && K > 0) {
@@ -151,7 +167,7 @@ real tva_pr_score_log(int score, data array[] int S, data array[] int D, real t,
   if(score < 0 || score > nT) return negative_infinity();
   int r = score == 0 ? 1 : choose(nT, score);
   array[r,score] int PR = combinations(Ts, score);
-  array[r] real ll; 
+  array[r] real ll;
   for(i in 1:r) {
     array[size(S)] int R = rep_array(0, size(S));
     R[PR[i,]] = rep_array(1, score);
@@ -167,7 +183,7 @@ real tva_wr_score_log(int score, data array[] int S, real t, vector t0_args, vec
   if(score < 0 || score > nT) return negative_infinity();
   int r = score == 0 ? 1 : choose(nT, score);
   array[r,score] int PR = combinations(Ts, score);
-  array[r] real ll; 
+  array[r] real ll;
   for(i in 1:r) {
     array[size(S)] int R = rep_array(0, size(S));
     R[PR[i,]] = rep_array(1, score);
