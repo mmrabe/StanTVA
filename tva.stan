@@ -141,6 +141,16 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
   }
 }
 
+real tva_wrg_log(data array[] int R, data array[] int S, real t, vector t0_args, vector K_args, vector v, real g) {
+  if(g < 0.0 || g > 1.0) reject("g=",g," must be 0<=g<=1!");
+  int nR = num_matches(R);
+  array[nR] Rs = get_matches(R);
+  vector[nR+1] ll;
+  ll[1] = tva_wr_log(R, S, t, t0_args, K_args, v);
+  for(n_guessed in 1:nR) {
+    int r = choose(nR, n_guessed);
+    array[r, n_guessed] int Gs = combinations(Rs, n_guessed);
+    vector[r] ll2;
 real tva_wr_log(data array[] int R, data array[] int S, real t, vector t0_args, vector K_args, vector v) {
   int nR = num_matches(R);
   int nS = num_matches(S);
