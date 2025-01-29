@@ -148,6 +148,7 @@ real tva_wrg_log(data array[] int R, data array[] int S, real t, vector t0_args,
   int nS = num_matches(S);
   vector[nR+1] ll;
   ll[1] = tva_wr_log(R, S, t, t0_args, K_args, v);
+  if(g < machine_precision()) return ll[1];
   for(n_guessed in 1:nR) {
     int r = choose(nR, n_guessed);
     array[r, n_guessed] int Gs = combinations(Rs, n_guessed);
