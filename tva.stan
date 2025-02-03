@@ -141,24 +141,35 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
   }
 }
 
-real tva_wrg_log(data array[] int R, data array[] int S, real t, vector t0_args, vector K_args, vector v, real g) {
+
+real tva_wrg_log(data array[] int R, data array[] int S, real t, vector t0_args, vector K_args, vector v, real g, int E, int I) {
   if(g < 0.0 || g > 1.0) reject("g=",g," must be 0<=g<=1!");
   int nR = num_matches(R);
-  array[nR] Rs = get_matches(R);
+  array[nR] int Rs = get_matches(R);
   int nS = num_matches(S);
   vector[nR+1] ll;
   ll[1] = tva_wr_log(R, S, t, t0_args, K_args, v);
+  if(nR+E >= size(R)) {
+    ll[1] += binomial_lccdf(E-1 | I-nR, g);
+  } else {
+    ll[1] += binomial_lpmf(E | I-nR, g);
+  }
   if(g < machine_precision()) return ll[1];
   for(n_guessed in 1:nR) {
     int r = choose(nR, n_guessed);
     array[r, n_guessed] int Gs = combinations(Rs, n_guessed);
     vector[r] ll2;
     for(j in 1:r) {
-      array[nR] int Ra = R;
+      array[size(R)] int Ra = R;
       for(i in 1:n_guessed) Ra[Gs[j,i]] = 0;
       ll2[j] = tva_wr_log(Ra, S, t, t0_args, K_args, v);
     }
-    ll[n_guessed+1] = log(g)*n_guessed + log_sum_exp(ll2);
+    ll[n_guessed+1] = log_sum_exp(ll2);
+    if(nR+E >= size(R)) {
+      ll[n_guessed+1] += binomial_lccdf(E+n_guessed-1 | I-nR+n_guessed, g);
+    } else {
+      ll[n_guessed+1] += binomial_lpmf(E+n_guessed | I-nR+n_guessed, g);
+    }
   }
   return log_sum_exp(ll);
 }
@@ -269,6 +280,31 @@ real tva_pr_log(data array[] int R, data array[] int S, data array[] int D, real
     if(ll[K+1] > negative_infinity()) {
       ll[K+1] += tvappdf(R[Ss], D[Ss], t, t0_args, K, v);
     }
+  }
+  return log_sum_exp(ll);
+}
+
+
+real tva_prg_log(data array[] int R, data array[] int S, data array[] int D, real t, vector t0_args, vector K_args, vector v, real g, int E, int I) {
+  if(g < 0.0 || g > 1.0) reject("g=",g," must be 0<=g<=1!");
+  int nR = num_matches(R);
+  array[nR] int Rs = get_matches(R);
+  int nS = num_matches(S);
+  vector[nR+1] ll;
+  ll[1] = tva_pr_log(R, S, D, t, t0_args, K_args, v);
+  ll[1] += binomial_lpmf(E | I-nR, g);
+  if(g < machine_precision()) return ll[1];
+  for(n_guessed in 1:nR) {
+    int r = choose(nR, n_guessed);
+    array[r, n_guessed] int Gs = combinations(Rs, n_guessed);
+    vector[r] ll2;
+    for(j in 1:r) {
+      array[size(R)] int Ra = R;
+      for(i in 1:n_guessed) Ra[Gs[j,i]] = 0;
+      ll2[j] = tva_pr_log(Ra, S, D, t, t0_args, K_args, v);
+    }
+    ll[n_guessed+1] = log_sum_exp(ll2);
+    ll[n_guessed+1] += binomial_lpmf(E+n_guessed | I-nR+n_guessed, g);
   }
   return log_sum_exp(ll);
 }
