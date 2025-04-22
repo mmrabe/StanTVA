@@ -181,7 +181,7 @@ real tva_wr_log(data array[] int R, data array[] int S, real t, vector t0_args, 
   array[nS] int Ss = get_matches(S);
   vector[max_nS+1] ll;
   for(K in 0:max_nS) {
-    ll[K+1] = tva_K_lpmf(K | K_args);
+    ll[K+1] = tva_K_lpmf(K | K_args, max_nS);
     if(ll[K+1] > negative_infinity()) {
       ll[K+1] += tvawpdf(R[Ss], t, t0_args, K, v);
     }
@@ -276,7 +276,7 @@ real tva_pr_log(data array[] int R, data array[] int S, data array[] int D, real
   array[nS] int Ss = get_matches(S);
   vector[max_nS+1] ll;
   for(K in 0:max_nS) {
-    ll[K+1] = tva_K_lpmf(K | K_args);
+    ll[K+1] = tva_K_lpmf(K | K_args, max_nS);
     if(ll[K+1] > negative_infinity()) {
       ll[K+1] += tvappdf(R[Ss], D[Ss], t, t0_args, K, v);
     }
@@ -314,7 +314,7 @@ array[] int tva_wr_rng(array[] int S, real t, vector t0_args, vector K_args, vec
   if(size(v) != nS) reject("v must have as many rates as there are items!");
   array[nS] int Ss = get_matches(S);
   array[size(S)] int R = rep_array(0, size(S));
-  int K = tva_K_rng(K_args);
+  int K = tva_K_rng(K_args, size(S));
   vector[nS] processing_times = tva_t_rng(v, t0_args);
   array[nS] int processing_order = sort_indices_asc(processing_times);
   for(j in 1:min(nS,K)) {
