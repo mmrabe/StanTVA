@@ -1,19 +1,4 @@
 
-array[] vector to_vector_array(matrix m) {
-  array[rows(m)] vector[cols(m)] a;
-  for(i in 1:rows(m)) {
-    a[i,] = to_vector(m[i,]);
-  }
-  return a;
-}
-
-matrix cov(matrix X) {
-  matrix[rows(X),cols(X)] Y;
-  for(i in 1:cols(X)) Y[,i] = X[,i] - mean(X[,i]);
-  matrix[cols(X),cols(X)] r = crossprod(Y)/(rows(X)-1);
-  return r;
-}
-
 int num_matches(array[] int x) {
   return sum(x);
 }
