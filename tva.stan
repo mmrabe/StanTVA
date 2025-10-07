@@ -1,4 +1,12 @@
 
+matrix sample_covariance(matrix m) {
+  return m' * m / (rows(m) - 1);
+}
+
+matrix sum_to_zero_basis(int K) {
+  return qr_thin_Q(identity_matrix(K)[:,:(K-1)] - 1.0 / K);
+}
+
 int num_matches(array[] int x) {
   return sum(x);
 }
