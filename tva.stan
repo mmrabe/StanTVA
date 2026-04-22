@@ -1,4 +1,12 @@
 
+real halfnormal_lpdf(vector x, real mu, real sigma) {
+  return normal_lpdf(x | mu, sigma) + log2();
+}
+
+real halfnormal_lpdf(real x, real mu, real sigma) {
+  return normal_lpdf(x | mu, sigma) + log2();
+}
+
 matrix sample_covariance(matrix m) {
   return m' * m / (rows(m) - 1);
 }
