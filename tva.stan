@@ -87,31 +87,40 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
     for(i in Rs) ll += tva_t_lcdf(t | v[i], t0_args);
     for(i in Us) ll += tva_t_lccdf(t | v[i], t0_args);
     return ll;
+    // after here, it is guaranteed that t > 0, K > 0, nR == K and nR < nS, so there is competition
+  } else if(nR == 1 && K == 1) {
+    // competition for the only one memory slot
+    real vsum = v[Rs[1]] + sum(v[Us]);
+    return log_psi(t, v[Rs[1]], t0_args) + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
   } else /*if(t >= 0 && K > 0 && nR == K && nR < nS)*/ {
     // competition for the last memory slot between at least 2 items
-    array[nR] real ll2;
+    int n = nR;
+    if(nR > 2) for(j in 3:nR) n *= 2; // n == nR * 2^(nR-2)
+    vector[n] xp;
+    vector[n] xm;
+    int ixp = 0;
+    int ixm = 0;
     for(j in 1:nR) {
       array[nR-1] int Rmi = append_array(Rs[:(j-1)], Rs[(j+1):]);
-      real xp = negative_infinity();
-      real xm = negative_infinity();
+      real c = log_psi(t, v[Rs[j]], t0_args);
       for(k in 0:(nR-1)) {
         int r = k == 0 ? 1 : choose(nR-1, k);
         array[r,k] int PRmi = combinations(Rmi, k);
         for(l in 1:r) {
           real vsum = v[Rs[j]] + sum(v[PRmi[l,]]) + sum(v[Us]);
           if(k % 2 == 0) {
-            xp = log_sum_exp(xp, tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args));
+            ixp += 1;
+            xp[ixp] = c + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
           } else {
-            xm = log_sum_exp(xm, tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args));
+            ixm += 1;
+            xm[ixm] = c + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
           }
         }
       }
-      if(xm > xp) {
-        return negative_infinity();
-      }
-      ll2[j] = log_psi(t, v[Rs[j]], t0_args) + log_diff_exp(xp, xm);
     }
-    return log_sum_exp(ll2);
+    real sxp = log_sum_exp(xp);
+    real sxm = log_sum_exp(xm);
+    return sxm >= sxp ? negative_infinity() : log_diff_exp(sxp, sxm);
   }/* else {
     reject("Unspecified scenario (R=",R,",t=",t,",t0=",t0_args,",K=",K,",v=",v,")");
   }*/
