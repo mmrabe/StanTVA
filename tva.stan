@@ -75,37 +75,20 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
   array[nR] int Rs = indices[:nR];
   array[nS-nR] int Us = indices[(nR+1):];
   //(Rs, Us) = sep_matches(R);
-  if(K == 0 && nR == 0) {
-    return 0.0;
-  } else if(t <= 0 && nR > 0) {
-    return negative_infinity();
-  } else if(t <= 0 && nR == 0) {
-    return 0.0;
-
+  if(K == 0 || t < 0) {
+    return nR == 0 ? 0.0 : negative_infinity();
   } else if(K < nR) {
     return negative_infinity();
-  } else if(0 == nR && K > 0) {
+  } else if(nR == 0 /* && t >= 0 && K > 0 */) {
     return tva_t_lccdf(t | sum(v), t0_args);
-  } else if(0 < nR && nR < K && nR < nS && t > 0) {
-    real xp = negative_infinity();
-    real xm = negative_infinity();
-    for(k in 0:nR) {
-      int r = k == 0 ? 1 : choose(nR, k);
-      array[r,k] int PR = combinations(Rs, k);
-      for(l in 1:r) {
-        real vsum = sum(v[PR[l,]]) + sum(v[Us]);
-        if(k % 2 == 0) {
-          xp = log_sum_exp(xp, tva_t_lpdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args));
-        } else {
-          xm = log_sum_exp(xm, tva_t_lpdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args));
-        }
-      }
-    }
-    if(xm > xp) {
-      return negative_infinity();
-    }
-    return log_diff_exp(xp, xm);
-  } else if(0 < nR && (nR == K || nR == nS) && t > 0) {
+  } else if(nR < K || (nR == K && nR == nS) /* && t >= 0 && K > 0 && 0 < nR <= K*/) {
+    // no competition
+    real ll = 0.0;
+    for(i in Rs) ll += tva_t_lcdf(t | v[i], t0_args);
+    for(i in Us) ll += tva_t_lccdf(t | v[i], t0_args);
+    return ll;
+  } else /*if(t >= 0 && K > 0 && nR == K && nR < nS)*/ {
+    // competition for the last memory slot between at least 2 items
     array[nR] real ll2;
     for(j in 1:nR) {
       array[nR-1] int Rmi = append_array(Rs[:(j-1)], Rs[(j+1):]);
@@ -129,9 +112,9 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
       ll2[j] = log_psi(t, v[Rs[j]], t0_args) + log_diff_exp(xp, xm);
     }
     return log_sum_exp(ll2);
-  } else {
+  }/* else {
     reject("Unspecified scenario (R=",R,",t=",t,",t0=",t0_args,",K=",K,",v=",v,")");
-  }
+  }*/
 }
 
 
