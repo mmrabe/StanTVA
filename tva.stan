@@ -83,7 +83,7 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
     return tva_t_lccdf(t | sum(v), t0_args);
   } else if(nR < K || (nR == K && nR == nS) /* && t >= 0 && K > 0 && 0 < nR <= K*/) {
     // no competition
-    real ll = tva_t_lccdf(t | sum(v[Us]), t0_args);
+    real ll = nS != nR ? tva_t_lccdf(t | sum(v[Us]), t0_args) : 0.0;
     for(i in Rs) ll += tva_t_lcdf(t | v[i], t0_args);
     return ll;
     // after here, it is guaranteed that t > 0, K > 0, nR == K and nR < nS, so there is competition
