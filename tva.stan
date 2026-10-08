@@ -83,14 +83,13 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
     return tva_t_lccdf(t | sum(v), t0_args);
   } else if(nR < K || (nR == K && nR == nS) /* && t >= 0 && K > 0 && 0 < nR <= K*/) {
     // no competition
-    real ll = 0.0;
+    real ll = tva_t_lccdf(t | v[Us], t0_args);
     for(i in Rs) ll += tva_t_lcdf(t | v[i], t0_args);
-    for(i in Us) ll += tva_t_lccdf(t | v[i], t0_args);
     return ll;
     // after here, it is guaranteed that t > 0, K > 0, nR == K and nR < nS, so there is competition
   } else if(nR == 1 && K == 1) {
     // competition for the only one memory slot
-    real vsum = v[Rs[1]] + sum(v[Us]);
+    real vsum = sum(v);
     return log_psi(t, v[Rs[1]], t0_args) + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
   } else /*if(t >= 0 && K > 0 && nR == K && nR < nS)*/ {
     // competition for the last memory slot between at least 2 items
