@@ -106,7 +106,7 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
         array[r,k] int PRmi = combinations(Rmi, k);
         for(l in 1:r) {
           real vsum = v[Rs[j]] + sum(v[PRmi[l,]]) + sum(v[Us]);
-          real log_term = log_psi(v[Rs[j]]) + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
+          real log_term = log_psi(t, v[Rs[j]], t0_args) + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
           if(k % 2 == 0) {
             ixp += 1;
             xp[ixp] = log_term;
