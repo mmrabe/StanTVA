@@ -94,31 +94,31 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
   } else /*if(t >= 0 && K > 0 && nR == K && nR < nS)*/ {
     // competition for the last memory slot between at least 2 items
     int n = nR;
-    if(nR > 2) for(j in 3:nR) n *= 2; // n == nR * 2^(nR-2)
+    if(nR > 1) for(j in 2:nR) n *= 2; // n == nR * 2^(nR-2)
     vector[n] xp;
     vector[n] xm;
     int ixp = 0;
     int ixm = 0;
     for(j in 1:nR) {
       array[nR-1] int Rmi = append_array(Rs[:(j-1)], Rs[(j+1):]);
-      real c = log_psi(t, v[Rs[j]], t0_args);
       for(k in 0:(nR-1)) {
         int r = k == 0 ? 1 : choose(nR-1, k);
         array[r,k] int PRmi = combinations(Rmi, k);
         for(l in 1:r) {
           real vsum = v[Rs[j]] + sum(v[PRmi[l,]]) + sum(v[Us]);
+          real log_term = log_psi(v[Rs[j]]) + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
           if(k % 2 == 0) {
             ixp += 1;
-            xp[ixp] = c + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
+            xp[ixp] = log_term;
           } else {
             ixm += 1;
-            xm[ixm] = c + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
+            xm[ixm] = log_term;
           }
         }
       }
     }
-    real sxp = log_sum_exp(xp);
-    real sxm = log_sum_exp(xm);
+    real sxp = log_sum_exp(xp[:ixp]);
+    real sxm = log_sum_exp(xm[:ixm]);
     return sxm >= sxp ? negative_infinity() : log_diff_exp(sxp, sxm);
   }/* else {
     reject("Unspecified scenario (R=",R,",t=",t,",t0=",t0_args,",K=",K,",v=",v,")");
