@@ -75,23 +75,44 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
   array[nR] int Rs = indices[:nR];
   array[nS-nR] int Us = indices[(nR+1):];
   //(Rs, Us) = sep_matches(R);
-  if(K == 0 || t < 0) {
+  if(K == 0 || t <= 0) {
     return nR == 0 ? 0.0 : negative_infinity();
-  } else if(K < nR) {
+  } else if(K < nR /* && t > 0 && K > 0 */) {
     return negative_infinity();
-  } else if(nR == 0 /* && t >= 0 && K > 0 */) {
+  } else if(nR == 0 /* && t > 0 && K >= nR */) {
     return tva_t_lccdf(t | sum(v), t0_args);
-  } else if(nR < K || (nR == K && nR == nS) /* && t >= 0 && K > 0 && 0 < nR <= K*/) {
+  } else if(nR < K || (nR == K && nR == nS) /* && t >= 0 && 0 < nR <= K*/) {
     // no competition
-    real ll = nS != nR ? tva_t_lccdf(t | sum(v[Us]), t0_args) : 0.0;
-    for(i in Rs) ll += tva_t_lcdf(t | v[i], t0_args);
-    return ll;
-    // after here, it is guaranteed that t > 0, K > 0, nR == K and nR < nS, so there is competition
-  } else if(nR == 1 && K == 1) {
+    int n = 1;
+    if(nR > 1) for(i in 2:nR) n *= 2;
+    vector[n+1] xp;
+    vector[n] xm;
+    int ixp = 0;
+    int ixm = 0;
+    for(k in 0:nR) {
+      int r = k == 0 ? 1 : choose(nR, k);
+      array[r,k] int PR = combinations(Rs, k);
+      for(l in 1:r) {
+        real vsum = sum(v[PR[l,]]) + sum(v[Us]);
+        real log_term = tva_t_lpdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
+        if(k % 2 == 0) {
+          ixp += 1;
+          xp[ixp] = log_term;
+        } else {
+          ixm += 1;
+          xm[ixm] = log_term;
+        }
+      }
+    }
+    real sxp = log_sum_exp(xp[:ixp]);
+    real sxm = log_sum_exp(xm[:ixm]);
+    return sxm >= sxp ? negative_infinity() : log_diff_exp(sxp, sxm);
+    // after here, it is guaranteed that t >= 0 && nR = K < nS, so there is competition
+  } else if(nR == 1 && K == 1 /* t >= 0 && nR = K < nS */) {
     // competition for the only one memory slot
     real vsum = sum(v);
     return log_psi(t, v[Rs[1]], t0_args) + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
-  } else /*if(t >= 0 && K > 0 && nR == K && nR < nS)*/ {
+  } else /*if(t >= 0 && 2 <= nR = K < nS)*/ {
     // competition for the last memory slot between at least 2 items
     int n = nR;
     if(nR > 1) for(j in 2:nR) n *= 2; // n == nR * 2^(nR-2)
