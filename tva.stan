@@ -75,13 +75,14 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
   array[nR] int Rs = indices[:nR];
   array[nS-nR] int Us = indices[(nR+1):];
   //(Rs, Us) = sep_matches(R);
+  if(K < 0) return negative_infinity();
   if(K == 0 || t <= 0) {
     return nR == 0 ? 0.0 : negative_infinity();
   } else if(K < nR /* && t > 0 && K > 0 */) {
     return negative_infinity();
   } else if(nR == 0 /* && t > 0 && K >= nR */) {
     return tva_t_lccdf(t | sum(v), t0_args);
-  } else if(nR < K || (nR == K && nR == nS) /* && t >= 0 && 0 < nR <= K*/) {
+  } else if(nR < K  /* && t >= 0 && 0 < nR <= K*/) { // || (nR == K && nR == nS) ???
     // no competition
     int n = 1;
     if(nR > 1) for(i in 2:nR) n *= 2;
@@ -94,7 +95,7 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
       array[r,k] int PR = combinations(Rs, k);
       for(l in 1:r) {
         real vsum = sum(v[PR[l,]]) + sum(v[Us]);
-        real log_term = tva_t_lpdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
+        real log_term = vsum >= machine_precision() ? tva_t_lpdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args) : negative_infinity();
         if(k % 2 == 0) {
           ixp += 1;
           xp[ixp] = log_term;
@@ -127,7 +128,7 @@ real tvawpdf(data array[] int R, real t, vector t0_args, int K, vector v) {
         array[r,k] int PRmi = combinations(Rmi, k);
         for(l in 1:r) {
           real vsum = v[Rs[j]] + sum(v[PRmi[l,]]) + sum(v[Us]);
-          real log_term = log_psi(t, v[Rs[j]], t0_args) + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args);
+          real log_term = v[Rs[j]] >= machine_precision() && vsum >= machine_precision() ? log_psi(t, v[Rs[j]], t0_args) + tva_t_lcdf(t | vsum, t0_args) - log_psi(t, vsum, t0_args) : negative_infinity();
           if(k % 2 == 0) {
             ixp += 1;
             xp[ixp] = log_term;
