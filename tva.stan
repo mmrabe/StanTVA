@@ -346,3 +346,12 @@ int tva_pr_score_rng(array[] int S, array[] int D, real t, vector t0_args, vecto
   return sum(tva_pr_rng(S, D, t, t0_args, K_args, v));
 }
 
+real half_cauchy_lpdf(vector x, real scale) {
+    if (scale <= 0) reject("scale must be > 0!");
+    return size(x) * (log2() - log(pi()) - log(scale)) - sum(log1p(square(x / scale)));
+}
+
+real half_cauchy_rng(real scale) {
+  return scale * tan(0.5 * pi() * uniform_rng(0.0, 1.0));
+}
+
