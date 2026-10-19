@@ -346,12 +346,27 @@ int tva_pr_score_rng(array[] int S, array[] int D, real t, vector t0_args, vecto
   return sum(tva_pr_rng(S, D, t, t0_args, K_args, v));
 }
 
-real half_cauchy_lpdf(vector x, real scale) {
-    if (scale <= 0) reject("scale must be > 0!");
-    return size(x) * (log2() - log(pi()) - log(scale)) - sum(log1p(square(x / scale)));
+real half_cauchy_lpdf(vector x, real sigma) {
+  return cauchy_lpdf(x | 0.0, sigma) + log2();
 }
 
-real half_cauchy_rng(real scale) {
-  return scale * tan(0.5 * pi() * uniform_rng(0.0, 1.0));
+real half_cauchy_rng(real sigma) {
+  return abs(cauchy_rng(0.0, sigma));
+}
+
+real half_student_t(vector x, real nu, real sigma) {
+  return student_t_lpdf(x | nu, 0.0, sigma) + log2();
+}
+
+real half_student_t_rng(real nu, real sigma) {
+  return abs(student_t_rng(nu, 0.0, sigma));
+}
+
+real half_normal_lpdf(vector x, real sigma) {
+  return normal_lpdf(x | 0.0, sigma) + log2();
+}
+
+real half_normal_rng(real sigma) {
+  return abs(normal_rng(0.0, sigma));
 }
 
