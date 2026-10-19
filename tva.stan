@@ -354,7 +354,7 @@ real half_cauchy_rng(real sigma) {
   return abs(cauchy_rng(0.0, sigma));
 }
 
-real half_student_t(vector x, real nu, real sigma) {
+real half_student_t_lpdf(vector x, real nu, real sigma) {
   return student_t_lpdf(x | nu, 0.0, sigma) + log2();
 }
 
