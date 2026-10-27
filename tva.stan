@@ -346,8 +346,16 @@ int tva_pr_score_rng(array[] int S, array[] int D, real t, vector t0_args, vecto
   return sum(tva_pr_rng(S, D, t, t0_args, K_args, v));
 }
 
+real exponential_median_lpdf(vector x, real median) {
+  return exponential_lpdf(x | log2() / median);
+}
+
+real exponential_median_rng(real median) {
+  return exponential_rng(log2() / median);
+}
+
 real half_cauchy_lpdf(vector x, real sigma) {
-  return cauchy_lpdf(x | 0.0, sigma) + log2();
+  return (x < 0.0) ? negative_infinity() : (cauchy_lpdf(x | 0.0, sigma) + log2());
 }
 
 real half_cauchy_rng(real sigma) {
@@ -355,7 +363,7 @@ real half_cauchy_rng(real sigma) {
 }
 
 real half_student_t_lpdf(vector x, real nu, real sigma) {
-  return student_t_lpdf(x | nu, 0.0, sigma) + log2();
+  return (x < 0.0) ? negative_infinity() : (student_t_lpdf(x | nu, 0.0, sigma) + log2());
 }
 
 real half_student_t_rng(real nu, real sigma) {
@@ -363,7 +371,7 @@ real half_student_t_rng(real nu, real sigma) {
 }
 
 real half_normal_lpdf(vector x, real sigma) {
-  return normal_lpdf(x | 0.0, sigma) + log2();
+  return (x < 0.0) ? negative_infinity() : (normal_lpdf(x | 0.0, sigma) + log2());
 }
 
 real half_normal_rng(real sigma) {
